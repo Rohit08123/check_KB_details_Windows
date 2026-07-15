@@ -1,0 +1,80 @@
+$month="jun"
+
+$bcds=Import-Csv "C:\Users\rohit.kumar\OneDrive - ALDINord\Dokumente\Month\jul\1.csv" |Where-Object{$_.Product -match "Windows Server" -and $_.'Release date'-match "$month"}
+
+
+
+$rs123=$bcds|Where-Object{$_.'Product Family' -match "Windows"}
+$rs123.count
+
+
+$rs124=$rs123|Where-Object{$_.'Product' -notmatch "Server Core installation"}
+
+$rs125=$rs124|Where-Object{$_.'Product' -notmatch "2022" }
+
+
+
+$rs125.count
+
+
+$acds=$rs125.Details|Get-Unique
+$acds.count
+
+
+#$acds="CVE-2023-38147"
+$2rls=Import-Csv "C:\Users\rohit.kumar\OneDrive - ALDINord\Dokumente\Month\jul\2.csv"
+
+$finalresult=@()
+
+
+foreach($vm in $acds){
+
+
+$acs=$2rls|Where-Object{$_.'CVE Number' -eq "$vm"}
+
+
+$grdff=$rs125|Where-Object{$_.'Details' -eq "$vm"}
+  
+$finalResult += New-Object psobject -Property @{
+
+                                            
+                                            Details=$vm
+                                            Release_Date=$acs.'Release date'|select -First 1
+                                            BaseScore=$grdff.'Base Score'|select -First 1
+                                            Impact=$acs.'impact'|select -First 1
+                                            Product=($grdff|Where-Object{$_.'Product' -match "2019"}).product|select -Last 1
+                                            Temporal_Score=$grdff.'Temporal Score'|select -Last 1
+                                            Exploited=$acs.Exploited|select -Last 1
+                                            Publicly_Disclosed=$acs.'Publicly Disclosed'|select -Last 1
+                                            Tag=$acs.'Tag'|select -Last 1
+                                            MaxSeverity =$grdff.'Max Severity'|select -First 1
+
+
+                                           
+                                          
+                                            
+                                             
+                                             
+                                             
+ }
+
+
+ }
+
+ $logdate=(Get-Date).ToString('yyyy_MM_dd_hh_mm')
+
+$scd=$finalResult
+
+#$finalResult|select Release_Date,Details,BaseScore,Temporal_Score,Product,Impact,Exploited,Publicly_Disclosed,Tag,MaxSeverity|Export-Csv  -Path "C:\Users\m.pachiayappan\OneDrive - ALDINord\Dokumente\Patching\result.csv" -NoTypeInformation
+
+$scd|Select Release_Date,Details,BaseScore,Temporal_Score,Product,Impact,Exploited,Publicly_Disclosed,MaxSeverity,Tag|Export-Csv -Path "C:\Users\rohit.kumar\OneDrive - ALDINord\Dokumente\Month\$logdate.csv" -NoTypeInformation
+
+
+#$scd|Sort-Object -Property Details|Sort-Object -Unique
+
+
+#($scd | sort-object | select Details | get-unique -asstring).count
+
+
+
+
